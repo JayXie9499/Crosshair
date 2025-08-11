@@ -1,0 +1,19 @@
+﻿<Window x:Class="Crosshair.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Crosshair"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowState="Maximized"
+        ResizeMode="NoResize"
+        SourceInitialized="Window_SourceInitialized">
+    <Grid>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Ellipse x:Name="BorderEllipse" Width="3.6" Height="3.6" Stroke="Black" StrokeThickness="1" Fill="Transparent"/>
+            <Ellipse x:Name="CenterDot" Width="3.5" Height="3.5" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>
