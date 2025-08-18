@@ -12,5 +12,9 @@
 		<DebugType>none</DebugType>
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
 		<PublishTrimmed>false</PublishTrimmed>
+		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="System.Windows.Forms" />
+	</ItemGroup>
 </Project>
