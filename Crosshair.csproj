@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
+		<OutputType Condition="'$(Configuration)'=='Debug'">Exe</OutputType>
+		<OutputType Condition="'$(Configuration)'=='Release'">WinExe</OutputType>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -14,7 +16,11 @@
 		<PublishTrimmed>false</PublishTrimmed>
 		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<Reference Include="System.Windows.Forms" />
+	  <EmbeddedResource Include="icon.ico">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	</ItemGroup>
 </Project>
