@@ -178,18 +178,22 @@ namespace Crosshair
                 DotCore.Fill = mainBrush;
                 DotCore.Width = _config.Size;
                 DotCore.Height = _config.Size;
-                DotBorder.Width = _config.Size + 0.2;
-                DotBorder.Height = _config.Size + 0.2;
+                DotBorder.Width = _config.Size + _config.BorderWidth;
+                DotBorder.Height = _config.Size + _config.BorderWidth;
             }
             else if (_config.Type == CrosshairType.Cross)
             {
                 DotRoot.Visibility = Visibility.Collapsed;
                 CrossRoot.Visibility = Visibility.Visible;
                 CrossCore.Stroke = mainBrush;
-                CrossBorder.Width = _config.Size;
-                CrossBorder.Height = _config.Size;
                 CrossCore.Width = _config.Size;
                 CrossCore.Height = _config.Size;
+                CrossCore.StrokeThickness = _config.Thickness;
+                CrossBorder.StrokeThickness = _config.Thickness + (_config.BorderWidth * 2);
+
+                double borderSize = _config.Size + (_config.BorderWidth * 2);
+                CrossBorder.Width = borderSize;
+                CrossBorder.Height = borderSize;
             }
         }
 
@@ -286,6 +290,8 @@ namespace Crosshair
     {
         public string Type { get; set; } = "Dot";
         public double Size { get; set; } = 3.5;
+        public double Thickness { get; set; } = 2.0;
+        public double BorderWidth { get; set; } = 1;
         public string Color { get; set; } = "#FF0000";
     }
 
@@ -293,6 +299,8 @@ namespace Crosshair
     {
         public required CrosshairType Type { get; init; }
         public required double Size { get; init; }
+        public required double Thickness { get; init; }
+        public required double BorderWidth { get; init; }
         public required Color Color { get; init; }
         public IntPtr? Target { get; set; }
 
@@ -309,6 +317,8 @@ namespace Crosshair
             }
 
             Size = config.Size;
+            Thickness = config.Thickness;
+            BorderWidth = config.BorderWidth;
             try
             {
                 Color = (Color)ColorConverter.ConvertFromString(config.Color);
