@@ -1,4 +1,5 @@
-# Supported types: dot, cross
-type: dot
+type: dot # Supported types: dot, cross
 size: 3.5
+thickness: 2 # Crosshair thickness for type: cross
+borderWidth: 1
 color: "#FF0000"
