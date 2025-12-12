@@ -18,6 +18,12 @@ using ColorConverter = System.Windows.Media.ColorConverter;
 
 namespace Crosshair
 {
+    public enum CrosshairType
+    {
+        Dot,
+        Cross
+    }
+
     public partial class MainWindow : Window
     {
         // Win32 constants
@@ -71,13 +77,8 @@ namespace Crosshair
             });
             _trayIcon.ContextMenuStrip = menu;
 
-            // 載入設定檔
             _config = LoadCrosshairConfig();
-            CenterDot.Fill = new SolidColorBrush(_config.Color);
-            CenterDot.Width = _config.Size;
-            CenterDot.Height = _config.Size;
-            BorderEllipse.Width = _config.Size + 0.2;
-            BorderEllipse.Height = _config.Size + 0.2;
+            ApplyCrosshairStyle();
 
             _winEventDelegate = new WinEventDelegate(ForegroundEventProc);
             _hHook = SetWinEventHook(
@@ -165,6 +166,31 @@ namespace Crosshair
         {
             base.OnClosing(e);
             e.Cancel = true;
+        }
+
+        private void ApplyCrosshairStyle()
+        {
+            SolidColorBrush mainBrush = new SolidColorBrush(_config.Color);
+            if (_config.Type == CrosshairType.Dot)
+            {
+                CrossRoot.Visibility = Visibility.Collapsed;
+                DotRoot.Visibility = Visibility.Visible;
+                DotCore.Fill = mainBrush;
+                DotCore.Width = _config.Size;
+                DotCore.Height = _config.Size;
+                DotBorder.Width = _config.Size + 0.2;
+                DotBorder.Height = _config.Size + 0.2;
+            }
+            else if (_config.Type == CrosshairType.Cross)
+            {
+                DotRoot.Visibility = Visibility.Collapsed;
+                CrossRoot.Visibility = Visibility.Visible;
+                CrossCore.Stroke = mainBrush;
+                CrossBorder.Width = _config.Size;
+                CrossBorder.Height = _config.Size;
+                CrossCore.Width = _config.Size;
+                CrossCore.Height = _config.Size;
+            }
         }
 
         private List<(IntPtr hWnd, string Title)> GetWindows()
@@ -258,12 +284,14 @@ namespace Crosshair
 
     public class AppConfig
     {
+        public string Type { get; set; } = "Dot";
         public double Size { get; set; } = 3.5;
         public string Color { get; set; } = "#FF0000";
     }
 
     public class CrosshairConfig
     {
+        public required CrosshairType Type { get; init; }
         public required double Size { get; init; }
         public required Color Color { get; init; }
         public IntPtr? Target { get; set; }
@@ -271,6 +299,15 @@ namespace Crosshair
         [SetsRequiredMembers]
         public CrosshairConfig(AppConfig config)
         {
+            if (Enum.TryParse(config.Type, true, out CrosshairType parsedType))
+            {
+                Type = parsedType;
+            }
+            else
+            {
+                Type = CrosshairType.Dot;
+            }
+
             Size = config.Size;
             try
             {

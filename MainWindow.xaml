@@ -10,10 +10,32 @@
         WindowState="Maximized"
         ResizeMode="NoResize"
         SourceInitialized="Window_SourceInitialized">
-    <Grid>
-        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Ellipse x:Name="BorderEllipse" Width="3.6" Height="3.6" Stroke="Black" StrokeThickness="1" Fill="Transparent"/>
-            <Ellipse x:Name="CenterDot" Width="3.5" Height="3.5" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Grid>
-    </Grid>
+	<Grid>
+		<Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+
+			<Grid x:Name="DotRoot" Visibility="Collapsed">
+				<Ellipse x:Name="DotBorder" Width="3.6" Height="3.6" Stroke="Black" StrokeThickness="1" Fill="Transparent"/>
+				<Ellipse x:Name="DotCore" Width="3.5" Height="3.5" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+			</Grid>
+
+			<Grid x:Name="CrossRoot" Visibility="Collapsed">
+				<Path x:Name="CrossBorder"
+                      Data="M 0,0 L 10,10 M 10,0 L 0,10"
+                      Stretch="Fill"
+                      Stroke="Black"
+                      StrokeThickness="3"
+                      StrokeEndLineCap="Round"
+                      StrokeStartLineCap="Round"/>
+
+				<Path x:Name="CrossCore"
+                      Data="M 0,0 L 10,10 M 10,0 L 0,10"
+                      Stretch="Fill"
+                      Stroke="Red"
+                      StrokeThickness="1.5"
+                      StrokeEndLineCap="Round"
+                      StrokeStartLineCap="Round"/>
+			</Grid>
+
+		</Grid>
+	</Grid>
 </Window>
