@@ -123,6 +123,7 @@ namespace Crosshair
         private void ForegroundEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hWnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
         {
             this.Dispatcher.Invoke(() =>
+            {
                 if (_config.Target == null)
                 {
                     return;
