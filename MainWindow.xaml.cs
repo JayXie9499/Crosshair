@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Resources.Extensions;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,8 +10,11 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using Color = System.Windows.Media.Color;
 using MessageBox = System.Windows.MessageBox;
+using ColorConverter = System.Windows.Media.ColorConverter;
 
 namespace Crosshair
 {
@@ -89,35 +93,42 @@ namespace Crosshair
         private static CrosshairConfig LoadCrosshairConfig()
         {
             string currentDir = AppDomain.CurrentDomain.BaseDirectory ?? Environment.CurrentDirectory;
-            string configPath = Path.Combine(currentDir, "config.txt");
+            string configPath = Path.Combine(currentDir, "config.yml");
             if (!File.Exists(configPath))
             {
-                return new CrosshairConfig(3.5, Colors.Red);
-            }
-
-            string content = File.ReadAllText(configPath).Trim();
-            Regex regex = new Regex(@"(\d+(?:\.\d+)?) #([a-f|\d]{6})", RegexOptions.IgnoreCase);
-            Match match = regex.Match(content);
-            if (String.IsNullOrEmpty(content) || !match.Success)
-            {
-                MessageBox.Show("config.txt格式錯誤！", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(0);
+                AppConfig defaultConfig = new AppConfig();
+                SaveConfig(configPath, defaultConfig);
+                return new CrosshairConfig(defaultConfig);
             }
 
             try
             {
-                string hex = match.Groups[2].Value;
-                byte r = Convert.ToByte(hex.Substring(0, 2), 16);
-                byte g = Convert.ToByte(hex.Substring(2, 2), 16);
-                byte b = Convert.ToByte(hex.Substring(4, 2), 16);
-                return new CrosshairConfig(double.Parse(match.Groups[1].Value), Color.FromRgb(r, g, b));
+                string content = File.ReadAllText(configPath).Trim();
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .Build();
+                AppConfig appConfig = deserializer.Deserialize<AppConfig>(content);
+                return new CrosshairConfig(appConfig);
+
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("config.txt讀取失敗！", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(0);
-                return default;
+                MessageBox.Show($"config.yml 讀取失敗！\n錯誤: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                return new CrosshairConfig(new AppConfig());
             }
+        }
+
+        private static void SaveConfig(string path, AppConfig config)
+        {
+            try
+            {
+                var serializer = new SerializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .Build();
+                string yaml = serializer.Serialize(config);
+                File.WriteAllText(path, yaml);
+            }
+            catch { }
         }
 
         private void ForegroundEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hWnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
@@ -245,6 +256,12 @@ namespace Crosshair
         #endregion
     }
 
+    public class AppConfig
+    {
+        public double Size { get; set; } = 3.5;
+        public string Color { get; set; } = "#FF0000";
+    }
+
     public class CrosshairConfig
     {
         public required double Size { get; init; }
@@ -252,7 +269,17 @@ namespace Crosshair
         public IntPtr? Target { get; set; }
 
         [SetsRequiredMembers]
-        public CrosshairConfig(double size, Color color) =>
-            (Size, Color) = (size, color);
+        public CrosshairConfig(AppConfig config)
+        {
+            Size = config.Size;
+            try
+            {
+                Color = (Color)ColorConverter.ConvertFromString(config.Color);
+            }
+            catch
+            {
+                Color = Colors.Red;
+            }
+        }
     }
 }
