@@ -1,19 +1,17 @@
 # Crosshair
 
-A simple dot crosshair overlay.
+A simple crosshair overlay.
 
-Create a `config.txt` within the same directory as `Crosshair.exe` to configure color, and size.
+Create a `config.yml` within the same directory as `Crosshair.exe` to customize the crosshair style.
 
-## config.txt
-
-Format:
-
-```
-<size> <hex color>
-```
+## config.yml
 
 Example:
 
-```
-3.5 #ff0000
+```yaml
+type: dot # Supported types: dot, cross
+size: 3.5
+thickness: 2 # Crosshair thickness for type: cross
+borderWidth: 1
+color: "#FF0000"
 ```
