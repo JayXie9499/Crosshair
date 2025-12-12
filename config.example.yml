@@ -1,2 +1,4 @@
+# Supported types: dot, cross
+type: dot
 size: 3.5
 color: "#FF0000"
