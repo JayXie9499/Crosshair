@@ -22,9 +22,12 @@ namespace Crosshair
         const int WS_EX_LAYERED = 0x00080000;
         const int WS_EX_TOOLWINDOW = 0x00000080;
         const int WS_EX_NOACTIVATE = 0x08000000;
+        const uint WINEVENT_OUTOFCONTEXT = 0;
+        const uint EVENT_SYSTEM_FOREGROUND = 3;
         private NotifyIcon _trayIcon;
-        private readonly DispatcherTimer _timer;
+        private IntPtr _hHook;
         private readonly CrosshairConfig _config;
+        private readonly WinEventDelegate _winEventDelegate;
 
         public MainWindow()
         {
@@ -57,6 +60,7 @@ namespace Crosshair
             menu.Items.Add(appsMenu);
             menu.Items.Add("Exit", null, (s, e) =>
             {
+                UnhookWinEvent(_hHook);
                 _trayIcon.Visible = false;
                 _trayIcon.Dispose();
                 Environment.Exit(0);
@@ -71,11 +75,15 @@ namespace Crosshair
             BorderEllipse.Width = _config.Size + 0.2;
             BorderEllipse.Height = _config.Size + 0.2;
 
-            // 動態顯示 Timer
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
-            _timer.Tick += CheckTopWindow;
-            _timer.Start();
+            _winEventDelegate = new WinEventDelegate(ForegroundEventProc);
+            _hHook = SetWinEventHook(
+                EVENT_SYSTEM_FOREGROUND,
+                EVENT_SYSTEM_FOREGROUND,
+                IntPtr.Zero,
+                _winEventDelegate,
+                0, 0,
+                WINEVENT_OUTOFCONTEXT
+            );
         }
 
         private static CrosshairConfig LoadCrosshairConfig()
@@ -112,22 +120,22 @@ namespace Crosshair
             }
         }
 
-        private void CheckTopWindow(object? sender, EventArgs e)
+        private void ForegroundEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hWnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
         {
-            if (_config.Target == null)
-            {
-                return;
-            }
-
-            IntPtr hWnd = GetForegroundWindow();
-            if (hWnd != _config.Target && this.IsVisible)
-            {
-                this.Hide();
-            }
-            else if (hWnd == _config.Target && !this.IsVisible)
-            {
-                this.Show();
-            }
+            this.Dispatcher.Invoke(() =>
+                if (_config.Target == null)
+                {
+                    return;
+                }
+                if (hWnd == _config.Target && !this.IsVisible)
+                {
+                    this.Show();
+                }
+                else if (hWnd != _config.Target && this.IsVisible)
+                {
+                    this.Hide();
+                }
+            });
         }
 
         private void Window_SourceInitialized(object sender, EventArgs e)
@@ -177,7 +185,9 @@ namespace Crosshair
             return result;
         }
 
-        delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hWnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
 
         #region PInvoke (64/32 bit safe)
         static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
@@ -225,6 +235,12 @@ namespace Crosshair
 
         [DllImport("user32.dll")]
         static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        static extern bool UnhookWinEvent(IntPtr hWinEventHook);
         #endregion
     }
 
